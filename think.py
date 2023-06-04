@@ -51,7 +51,8 @@ class Application(tk.Frame):
 
                     # Log the clipboard data and the response
                     self.log_text.insert(tk.END, f'Sent data: {clipboard_data}\n')
-                    self.log_text.insert(tk.END, f'Received response: {response.text}\n')
+                    self.log_text.insert(tk.END, f'Response status code: {response.status_code}\n')
+                    self.log_text.insert(tk.END, f'Response body: {response.text}\n')
             except AttributeError:
                 pass
 
