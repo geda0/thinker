@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from pynput import keyboard
 import requests
-import threading
+import urllib.parse
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -45,9 +45,10 @@ class Application(tk.Frame):
         def on_press(key):
             try:
                 if key.char == self.hotkey:
-                    # Get the clipboard data
+                    # Get the clipboard data and encode it
                     clipboard_data = self.master.clipboard_get()
-                    response = requests.post(self.url, data = {'data': clipboard_data})
+                    encoded_data = urllib.parse.quote_plus(clipboard_data)
+                    response = requests.post(self.url, data = {'data': encoded_data})
 
                     # Log the clipboard data and the response
                     self.log_text.insert(tk.END, f'Sent data: {clipboard_data}\n')
@@ -56,8 +57,13 @@ class Application(tk.Frame):
             except AttributeError:
                 pass
 
-        listener = keyboard.Listener(on_press=on_press)
+        
+        def on_release(key):
+            pass
+
+        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         listener.start()
+
 
 root = tk.Tk()
 app = Application(master=root)
