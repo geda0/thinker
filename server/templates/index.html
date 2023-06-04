@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Postings</h2>
+
+{% for post in postings %}
+  <p>{{ post }}</p>
+  <button onclick="copyToClipboard('{{ post }}')">Copy</button>
+{% endfor %}
+
+<h2>Post data</h2>
+
+<form action="/" method="post">
+  {{ form.hidden_tag() }}
+  {{ form.data.label }} {{ form.data(size=32) }}
+  {{ form.submit() }}
+</form>
+
+<script>
+function copyToClipboard(text) {
+  var tempInput = document.createElement("input");
+  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+  tempInput.value = text;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand("copy");
+  document.body.removeChild(tempInput);
+}
+</script>
+
+</body>
+</html>
