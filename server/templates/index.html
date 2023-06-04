@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 <h2>Postings</h2>
 
@@ -35,13 +36,22 @@ setInterval(function() {
     const postingsDiv = document.getElementById('postings');
     postingsDiv.innerHTML = '';
     data.forEach((posting, index) => {
-      const p = document.createElement('p');
-      p.textContent = posting;
-      postingsDiv.appendChild(p);
+      const pre = document.createElement('pre');
+      pre.textContent = posting;
+      if (index === data.length - 1) {
+        pre.id = 'latest'; // Give the latest element an id
+      }
+      postingsDiv.appendChild(pre);
 
       const copyButton = document.createElement('button');
-      copyButton.textContent = 'Copy';
+      copyButton.textContent = '= = =';
       copyButton.onclick = function() { copyToClipboard(posting); };
+      
+      // Check if it's the last element and add a class for styling
+      if (index === data.length - 1) {
+        copyButton.style.fontSize = '900%';
+      }
+
       postingsDiv.appendChild(copyButton);
 
       const deleteForm = document.createElement('form');
@@ -50,12 +60,15 @@ setInterval(function() {
       deleteForm.style.display = 'inline';
       const deleteButton = document.createElement('input');
       deleteButton.type = 'submit';
-      deleteButton.value = 'Delete';
+      deleteButton.value = '" - "';
       deleteForm.appendChild(deleteButton);
       postingsDiv.appendChild(deleteForm);
 
       postingsDiv.appendChild(document.createElement('br'));
     });
+
+    // Scroll to latest element
+    document.getElementById('latest').scrollIntoView();
   });
 }, 999);
 </script>
