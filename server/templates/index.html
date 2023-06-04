@@ -35,27 +35,20 @@ setInterval(function() {
   .then(data => {
     const postingsDiv = document.getElementById('postings');
     postingsDiv.innerHTML = '';
-    data.forEach((posting, index) => {
-      const pre = document.createElement('pre');
-      pre.textContent = posting;
-      if (index === data.length - 1) {
-        pre.id = 'latest'; // Give the latest element an id
-      }
-      postingsDiv.appendChild(pre);
-
+    data.reverse().forEach((posting, index) => {
       const copyButton = document.createElement('button');
       copyButton.textContent = '= = =';
       copyButton.onclick = function() { copyToClipboard(posting); };
       
-      // Check if it's the last element and add a class for styling
-      if (index === data.length - 1) {
+      // Check if it's the first element after reversing and add a class for styling
+      if (index === 0) {
         copyButton.style.fontSize = '900%';
       }
 
       postingsDiv.appendChild(copyButton);
 
       const deleteForm = document.createElement('form');
-      deleteForm.action = '/delete/' + index;
+      deleteForm.action = '/delete/' + (data.length - 1 - index);  // adjust index because we reversed the data
       deleteForm.method = 'POST';
       deleteForm.style.display = 'inline';
       const deleteButton = document.createElement('input');
@@ -64,11 +57,12 @@ setInterval(function() {
       deleteForm.appendChild(deleteButton);
       postingsDiv.appendChild(deleteForm);
 
+      const pre = document.createElement('pre');
+      pre.textContent = posting;
+      postingsDiv.appendChild(pre);
+      
       postingsDiv.appendChild(document.createElement('br'));
     });
-
-    // Scroll to latest element
-    document.getElementById('latest').scrollIntoView();
   });
 }, 999);
 </script>
