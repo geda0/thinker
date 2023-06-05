@@ -1,43 +1,51 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
-import os
+from wtforms import TextAreaField, SubmitField, FileField
+from wtforms.validators import Optional
+from werkzeug.utils import secure_filename
 from urllib.parse import unquote_plus
+import os
 
 # Flask configuration
 SECRET_KEY = os.urandom(32)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF protection
+app.config['UPLOAD_FOLDER'] = './uploads'
 
-# This list will store the posted data
+# Check if the upload folder exists, if not create it
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 postings = []
 
-# Flask-WTF form for posting data
 class PostForm(FlaskForm):
-    data = StringField('Data', validators=[DataRequired()])
+    data = TextAreaField('Data', validators=[Optional()])
+    file = FileField('File')
     submit = SubmitField('Post')
 
 @app.route('/get_postings', methods=['GET'])
 def get_postings():
     return jsonify(postings)
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = PostForm()
-    if request.method == 'POST':
-        # Retrieve the data and decode it
-        raw_data = request.form["data"]
-        decoded_data = unquote_plus(raw_data)
-        print(f'Received a POST request. Data: {decoded_data}')
-
-        if form.validate_on_submit():
+    if form.validate_on_submit():
+        file = form.file.data
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            postings.append(url_for('uploaded_file', filename=filename))
+        else:
+            raw_data = form.data.data
+            decoded_data = unquote_plus(raw_data)
             postings.append(decoded_data)
-            return redirect('/')
-    else:
-        print('Received a GET request.')
-
+        return redirect('/')
     return render_template('index.html', form=form, postings=enumerate(postings))
 
 @app.route('/delete/<int:index>', methods=['POST'])

@@ -3,32 +3,26 @@
 <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
+<h2>Post data</h2>
+
+<form id="postForm" action="{{ url_for('index') }}" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ form.data.label }} {{ form.data(rows=5, cols=40) }}
+    {{ form.file.label }} {{ form.file() }}
+    {{ form.submit() }}
+</form>
+
 <h2>Postings</h2>
 
 <div id="postings">
   <!-- Postings will be inserted here by JavaScript -->
 </div>
 
-<h2>Post data</h2>
-
-<form id="postForm" action="{{ url_for('index') }}" method="post">
-  {{ form.hidden_tag() }}
-  {{ form.data.label }} {{ form.data(size=32) }}
-  {{ form.submit() }}
-</form>
-
 <script>
-function copyToClipboard(text) {
-  var tempTextArea = document.createElement("textarea");
-  tempTextArea.style = "position: absolute; left: -1000px; top: -1000px";
-  tempTextArea.value = text;
-  document.body.appendChild(tempTextArea);
-  tempTextArea.select();
-  document.execCommand("copy");
-  document.body.removeChild(tempTextArea);
+function downloadFile(url) {
+  window.location.href = url;
 }
 
-// Update the postings every 5 seconds
 setInterval(function() {
   fetch('/get_postings')
   .then(response => response.json())
@@ -38,14 +32,21 @@ setInterval(function() {
     data.reverse().forEach((posting, index) => {
       const copyButton = document.createElement('button');
       copyButton.textContent = '= = =';
-      copyButton.onclick = function() { copyToClipboard(posting); };
-      
-      // Check if it's the first element after reversing and add a class for styling
+      if (posting.startsWith('/uploads/')) {
+        copyButton.onclick = function() { downloadFile(posting); };
+      } else {
+        copyButton.onclick = function() { navigator.clipboard.writeText(posting); };
+      }
       if (index === 0) {
         copyButton.style.fontSize = '900%';
       }
-
       postingsDiv.appendChild(copyButton);
+
+      if (!posting.startsWith('/uploads/')) {
+        const pre = document.createElement('pre');
+        pre.textContent = posting;
+        postingsDiv.appendChild(pre);
+      }
 
       const deleteForm = document.createElement('form');
       deleteForm.action = '/delete/' + (data.length - 1 - index);  // adjust index because we reversed the data
@@ -57,10 +58,6 @@ setInterval(function() {
       deleteForm.appendChild(deleteButton);
       postingsDiv.appendChild(deleteForm);
 
-      const pre = document.createElement('pre');
-      pre.textContent = posting;
-      postingsDiv.appendChild(pre);
-      
       postingsDiv.appendChild(document.createElement('br'));
     });
   });
