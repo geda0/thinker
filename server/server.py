@@ -49,12 +49,14 @@ def index():
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     # Add file URL to postings
                     postings.append(url_for('uploaded_file', filename=filename))
-                else:
-                    # If no file is selected, handle the text data
-                    raw_data = form.data.data
-                    if raw_data:  # Check if raw_data is not empty
-                        decoded_data = unquote_plus(raw_data)
-                        postings.append(decoded_data)
+                    
+            # Handling the text data - moved out of the 'else' clause
+            raw_data = request.form.get('data')  # directly access the value of the 'data' field
+            if raw_data:  # Check if raw_data is not empty
+                if isinstance(raw_data, str):  # add this check
+                    decoded_data = unquote_plus(raw_data)
+                    postings.append(decoded_data)
+
             return redirect('/')
     else:
         print('Received a GET request.')

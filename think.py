@@ -48,8 +48,7 @@ class Application(tk.Frame):
                     # Get the clipboard data and encode it
                     clipboard_data = self.master.clipboard_get()
                     encoded_data = urllib.parse.quote_plus(clipboard_data)
-                    response = requests.post(self.url, data = {'data': encoded_data})
-
+                    response = requests.post(self.url, data={'data': encoded_data}, files={'file': ('', '')})
                     # Log the clipboard data and the response
                     self.log_text.insert(tk.END, f'Sent data: {clipboard_data}\n')
                     self.log_text.insert(tk.END, f'Response status code: {response.status_code}\n')
