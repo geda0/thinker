@@ -19,10 +19,26 @@
 </div>
 
 <script>
-function downloadFile(url) {
-  window.location.href = url;
+function copyToClipboard(text) {
+  var tempInput = document.createElement("textarea");
+  tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+  tempInput.value = text;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand("copy");
+  document.body.removeChild(tempInput);
 }
 
+function downloadFile(url) {
+    var downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = url.split('/').pop();
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
+// Update the postings every 5 seconds
 setInterval(function() {
   fetch('/get_postings')
   .then(response => response.json())
@@ -32,24 +48,31 @@ setInterval(function() {
     data.reverse().forEach((posting, index) => {
       const copyButton = document.createElement('button');
       copyButton.textContent = '= = =';
-      if (posting.startsWith('/uploads/')) {
-        copyButton.onclick = function() { downloadFile(posting); };
-      } else {
-        copyButton.onclick = function() { navigator.clipboard.writeText(posting); };
-      }
+      copyButton.onclick = function() {
+        if (posting.startsWith('/uploads/')) {
+          downloadFile(posting);
+        } else {
+          copyToClipboard(posting);
+        }
+      };
+
+      // Check if it's the first element after reversing and add a class for styling
       if (index === 0) {
         copyButton.style.fontSize = '900%';
       }
+
       postingsDiv.appendChild(copyButton);
 
+      const pre = document.createElement('pre');
       if (!posting.startsWith('/uploads/')) {
-        const pre = document.createElement('pre');
         pre.textContent = posting;
-        postingsDiv.appendChild(pre);
+      } else {
+        pre.textContent = posting.split('/').pop();  // Display only the file name
       }
+      postingsDiv.appendChild(pre);
 
       const deleteForm = document.createElement('form');
-      deleteForm.action = '/delete/' + (data.length - 1 - index);  // adjust index because we reversed the data
+      deleteForm.action = '/delete/' + (data.length - 1 - index);
       deleteForm.method = 'POST';
       deleteForm.style.display = 'inline';
       const deleteButton = document.createElement('input');
